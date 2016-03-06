@@ -14,12 +14,14 @@ Player::Player(Side side) {
      * precalculating things, etc.) However, remember that you will only have
      * 30 seconds.
      */
+    board = new Board();
 }
 
 /*
  * Destructor for the player.
  */
 Player::~Player() {
+
 }
 
 /*
