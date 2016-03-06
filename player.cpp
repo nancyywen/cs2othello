@@ -8,6 +8,7 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
+    dumbPlaying = false; // true if playing randomly, false if using heuristic
 
     /* 
      * TODO: Do any initialization you need to do here (setting up the board,
@@ -22,6 +23,7 @@ Player::Player(Side side) {
     else{
         opp_side = BLACK;
     }
+
 }
 
 /*
@@ -51,6 +53,7 @@ std::vector<Move*> Player::findValid(Side side){
     return valid_moves; 
 }
 
+/* Compute score for every position in the board using heuristic */
 
 
 /*
@@ -70,29 +73,51 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
      * TODO: Implement how moves your AI should play here. You should first
      * process the opponent's opponents move before calculating your own move
      */ 
+    std::clock_t start;
+    double duration;
+    start = std::clock();
 
+    Move *myMove = NULL;
     if(testingMinimax){
         std::cerr << "Minimax not implemented yet" << std::endl;
-        return NULL;
     }
     else{
-        Move *myMove = NULL;
-
         // Process opponent's move (doMove handles NULL moves)
         board->doMove(opponentsMove, opp_side);
 
         // Calculate my valid moves
-        std::vector <Move*> valid_moves = findValid(my_side);
+        std::vector<Move*> valid_moves = findValid(my_side);
 
-        if(!valid_moves.empty()){ // Randomly choose a valid move to play
+        if(!valid_moves.empty() && dumbPlaying){ // Randomly choose a valid move to play
             int index = rand() % valid_moves.size();
             myMove = valid_moves[index];
         }
+
+        if(!valid_moves.empty() && !dumbPlaying){ // choose valid move using heuristic
+            //find the best move out of all the valid moves
+            std::vector<Move*>::iterator i;
+            int best_score = -10000; 
+            int curr_score;
+            for(i = valid_moves.begin(); i != valid_moves.end(); i++){
+                Move *curr = *i;
+                Board *b = board->copy();
+                b->doMove(curr, my_side);
+                curr_score = b->count(my_side) - b->count(opp_side);
+                if(curr_score > best_score){
+                    best_score = curr_score;
+                    myMove = curr;
+                }
+            }
+        }
         // Process my own move
         board->doMove(myMove, my_side);
-        fprintf(stderr,"Using heuristic, Iago (%s) chose Move: (%d, %d)\n",
+        fprintf(stderr,"Using %s, Iago (%s) chose Move: (%d, %d)\n",
+            (dumbPlaying) ? "random choice": "heuristic",
             (my_side == BLACK) ? "Black": "White", 
             myMove->getX(), myMove->getY());
-        return myMove;
-    } 
+    }// closes else
+
+    duration = (std::clock() - start) / (double)CLOCKS_PER_SEC * 1000;
+    fprintf(stderr, "Time to make move: %f milliseconds\n", duration);
+    return myMove;
 }

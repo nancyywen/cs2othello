@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdlib.h> 
 #include <stdio.h>
+#include <ctime>
 #include "common.h"
 #include "board.h"
 using namespace std;
@@ -20,6 +21,9 @@ public:
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
+
+    // flag to indicate whether playing with heuristic or randomly
+    bool dumbPlaying; 
 
     // declare member variables
     Board *board;
