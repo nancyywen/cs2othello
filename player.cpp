@@ -52,9 +52,71 @@ std::vector<Move*> Player::findValid(Side side){
     }
     return valid_moves; 
 }
+/*
+ * Returns true if the move is in corner
+ */
+bool Player::isCorner(Move *m){
+    if ((m->getX() == 0 && m->getY() == 0) ||
+        (m->getX() == 0 && m->getY() == 7) ||
+        (m->getX() == 7 && m->getY() == 0) ||
+        (m->getX() == 7 && m->getY() == 7)) {
+        return true;
+    }
+    return false;
+}
 
-/* Compute score for every position in the board using heuristic */
 
+/* Compute heuristic score for a given move by finding
+ * the difference in the weighted sum between the two players
+ */
+int Player::findScore(Move *move, Side side){
+    int my_score = 0;
+    int opp_score = 0;
+    Board *b = board->copy();
+    b->doMove(move, side);
+
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            if(b->occupied(i, j)){
+                if(b->get(side, i, j)){
+                    my_score += heuristic[i][j];
+                }
+                else{
+                    opp_score += heuristic[i][j];
+                }
+            }
+        }
+    }
+    return my_score - opp_score;
+}
+
+
+/* Compute heuristic score for a given move:
+    1) Difference in stone counts after the move (Weight: 1/100)
+    2) Difference in number of valid moves after the move (Weight = 1)
+    3) Corner squares
+  */
+/*
+int Player::findScore(Move *move, Side side){
+    int score;
+    Side opp;
+    if(side == BLACK){
+        opp = WHITE;
+    }
+    else{
+        opp = BLACK;
+    }
+    Board *b = board->copy();
+    b->doMove(move, side);
+    int num_stones = b->count(side) - b->count(opp);
+    int num_moves = (findValid(side)).size() - (findValid(opp)).size();
+    int corner = 0;
+    if (isCorner(move)){
+        corner++;
+    }
+    score = num_stones/100 + num_moves + corner*100;
+    return score;
+*/
 
 /*
  * Compute the next move given the opponent's last move. Your AI is
@@ -96,13 +158,12 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         if(!valid_moves.empty() && !dumbPlaying){ // choose valid move using heuristic
             //find the best move out of all the valid moves
             std::vector<Move*>::iterator i;
-            int best_score = -10000; 
+            int best_score = std::numeric_limits<int>::min(); 
+            Move *curr;
             int curr_score;
             for(i = valid_moves.begin(); i != valid_moves.end(); i++){
-                Move *curr = *i;
-                Board *b = board->copy();
-                b->doMove(curr, my_side);
-                curr_score = b->count(my_side) - b->count(opp_side);
+                curr = *i;
+                curr_score = findScore(curr, my_side);
                 if(curr_score > best_score){
                     best_score = curr_score;
                     myMove = curr;
@@ -117,7 +178,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
             myMove->getX(), myMove->getY());
     }// closes else
 
-    duration = (std::clock() - start) / (double)CLOCKS_PER_SEC * 1000;
+    duration = (std::clock() - start) / (double)CLOCKS_PER_SEC * MSEC;
     fprintf(stderr, "Time to make move: %f milliseconds\n", duration);
     return myMove;
 }

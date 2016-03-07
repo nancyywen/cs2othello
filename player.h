@@ -6,10 +6,24 @@
 #include <stdlib.h> 
 #include <stdio.h>
 #include <ctime>
+#include <limits>
 #include "common.h"
 #include "board.h"
+
+#define MSEC (1000)
 using namespace std;
 
+// used reference for the state weights heuristic fuunction
+// https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/Final_Paper.pdf
+const int heuristic[8][8] = { {4, -3, 2, 2, 2, 2, -3, 4},
+                    {-3, -4, -1, -1, -1, -1, -4, -3},
+                    {2, -1, 1, 0, 0, 1, -1, 2}, 
+                    {2, -1, 0, 1, 1, 0, -1, 2},
+                    {2, -1, 0, 1, 1, 0, -1, 2},
+                    {2, -1, 1, 0, 0, 1, -1, 2}, 
+                    {-3, -4, -1, -1, -1, -1, -4, -3},
+                    {4, -3, 2, 2, 2, 2, -3, 4}}; 
+                    
 class Player {
 
 public:
@@ -17,6 +31,8 @@ public:
     ~Player();
     
     std::vector<Move*> findValid(Side side);
+    bool isCorner(Move *m);
+    int findScore(Move *move, Side side);
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context
@@ -29,6 +45,8 @@ public:
     Board *board;
     Side my_side;
     Side opp_side;
+
+    
 };
 
 #endif
