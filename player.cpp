@@ -90,34 +90,6 @@ int Player::findScore(Move *move, Side side){
     return my_score - opp_score;
 }
 
-
-/* Compute heuristic score for a given move:
-    1) Difference in stone counts after the move (Weight: 1/100)
-    2) Difference in number of valid moves after the move (Weight = 1)
-    3) Corner squares
-  */
-/*
-int Player::findScore(Move *move, Side side){
-    int score;
-    Side opp;
-    if(side == BLACK){
-        opp = WHITE;
-    }
-    else{
-        opp = BLACK;
-    }
-    Board *b = board->copy();
-    b->doMove(move, side);
-    int num_stones = b->count(side) - b->count(opp);
-    int num_moves = (findValid(side)).size() - (findValid(opp)).size();
-    int corner = 0;
-    if (isCorner(move)){
-        corner++;
-    }
-    score = num_stones/100 + num_moves + corner*100;
-    return score;
-*/
-
 /*
  * Compute the next move given the opponent's last move. Your AI is
  * expected to keep track of the board on its own. If this is the first move,
