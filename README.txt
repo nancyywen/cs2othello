@@ -6,3 +6,4 @@ Week 1:
 2. Implemented a heuristic algorithm
 
 Week 2:
+1. Implement the minimax algorithm
