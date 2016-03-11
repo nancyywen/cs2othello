@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <utility>  // std::pair
 #include <stdlib.h> 
 #include <stdio.h>
 #include <ctime>
@@ -34,6 +35,7 @@ public:
     bool isCorner(Move *m);
     int heuristicScore(Move *move, Side side);
     int boardScore(Side side, Board *b);
+    std::pair<int, Move*> minimax(Board *b, int depth, int max_depth, bool maximizingPlayer);
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context
