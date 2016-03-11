@@ -30,7 +30,7 @@ public:
     Player(Side side);
     ~Player();
     
-    std::vector<Move*> findValid(Side side, Board *bd);
+    std::vector<Move*> findValid(Side side, Board *b);
     bool isCorner(Move *m);
     int heuristicScore(Move *move, Side side);
     int boardScore(Side side, Board *b);

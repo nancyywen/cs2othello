@@ -35,16 +35,16 @@ Player::~Player() {
 
 /* Compute the valid moves for player on a given board
    Returns a vector of pointers to valid Moves */
-std::vector<Move*> Player::findValid(Side side, Board *bd){
+std::vector<Move*> Player::findValid(Side side, Board *b){
     std::vector<Move*> valid_moves;
     Move *curr_move;
-    if (bd->hasMoves(side)){
+    if (b->hasMoves(side)){
         // go through the entire board to check if each 
         // position is a potentially valid move
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 curr_move = new Move(i, j);
-                if(bd->checkMove(curr_move, side)){
+                if(b->checkMove(curr_move, side)){
                     valid_moves.push_back(curr_move);
                 }
             }
@@ -114,14 +114,12 @@ int Player::boardScore(Side side, Board *b){
 }
 
 
-
 /* This struct represents a node on the minimax tree */
 struct Node { 
     Board* board;
     Move* branch;
     int score;
 };
-
 
 /*
  * Compute the next move given the opponent's last move. Your AI is
@@ -155,12 +153,13 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         // Layer 1:
         // Children of root node created for possibles moves for my_side
         std::vector<Move*> valid_moves = findValid(my_side, board);
-        std::vector<Move*>::iterator i;
+        std::vector<Move*>::iterator i; // for valid_moves
         std::vector<Node> tree1; // nodes in first layer of tree
         for(i = valid_moves.begin(); i != valid_moves.end(); i++){
-            std::cerr << "Layer 1" << std::endl;
             Node n1;
             n1.branch = *i;
+            std::cerr << "Layer 1: " << (n1.branch)->getX() <<
+                             ", " << (n1.branch)->getY() << std::endl;
             Board *b1 = board->copy();
             b1->doMove(*i, my_side);
             n1.board = b1;
@@ -168,18 +167,21 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         }
 
         // Layer 2: possible moves for opp_side
-        std::vector<Node>::iterator j;
+        std::vector<Node>::iterator j; // for tree1
         std::vector<Node> tree2; // nodes in second layer of tree
         
         for (j = tree1.begin(); j != tree1.end(); j++){
             int min_score = std::numeric_limits<int>::max(); 
             Node curr_node = *j;
             Board *curr_board = curr_node.board;
-            valid_moves = findValid(my_side, curr_board);
+            std::vector<Move*> valid_moves = findValid(opp_side, curr_board);
+            std::cerr << (curr_node.branch)->getX() << ", " << (curr_node.branch)->getY() << std::endl;
+            std::vector<Move*>::iterator i; // for valid_moves
             for(i = valid_moves.begin(); i != valid_moves.end(); i++){
-                std::cerr << "Layer 2" << std::endl;
                 Node n2;
                 n2.branch = *i;
+                std::cerr << "Layer 2: " << (n2.branch)->getX() <<
+                             ", " << (n2.branch)->getY() << std::endl;
                 Board *b2 = curr_board->copy();
                 b2->doMove(*i, opp_side);
                 n2.score = boardScore(my_side, b2);
