@@ -8,6 +8,7 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
+    minimaxPlaying = false; // true if using minimax
     dumbPlaying = false; // true if playing randomly, false if using heuristic
 
     /* 
@@ -143,7 +144,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     start = std::clock();
 
     Move *myMove = NULL;
-    if(testingMinimax){
+    if(testingMinimax || minimaxPlaying){
         std::cerr << "Testing minimax" << std::endl;
         // Process opponent's move (doMove handles NULL moves)
         board->doMove(opponentsMove, opp_side); 

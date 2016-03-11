@@ -39,6 +39,9 @@ public:
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
 
+    // flag to indicate if using minimax
+    bool minimaxPlaying;
+
     // flag to indicate whether playing with heuristic or randomly
     bool dumbPlaying; 
 
