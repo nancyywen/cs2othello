@@ -117,10 +117,12 @@ int Player::boardScore(Side side, Board *b){
 
 /* Given the current state of the board, the depth being searched, and
    the maximum depth to be search, minimax returns the chosen move */
-std::pair<int, Move*> Player::minimax(Board *b, int depth, int max_depth, bool maximizingPlayer){
+std::pair<int, Move*> Player::minimax(Board *b, int depth,
+                    int max_depth, bool maximizingPlayer){
     std::pair<int, Move*> best_choice;
     int best_score;
     Move *best_move = NULL;
+
     if (depth == max_depth){
         int score = boardScore(my_side, b);
         best_choice = std::make_pair(score, best_move);
@@ -152,6 +154,7 @@ std::pair<int, Move*> Player::minimax(Board *b, int depth, int max_depth, bool m
                         best_score = choice.first;
                         best_move = *i;
                     } 
+                    delete b2;
                 }
                 best_choice = std::make_pair(best_score, best_move);
                 return best_choice; 
@@ -168,6 +171,7 @@ std::pair<int, Move*> Player::minimax(Board *b, int depth, int max_depth, bool m
                         best_score = choice.first;
                         best_move = *j;
                     } 
+                    delete b2;
                 }
                 best_choice = std::make_pair(best_score, best_move);
                 return best_choice;
@@ -203,14 +207,15 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         board->doMove(opponentsMove, opp_side); 
 
         // Call minimax
+        int max_depth = 4;
+        
         std::pair<int, Move*> best_choice = 
-            minimax(board, 0, 2, true);
+            minimax(board, 0, max_depth, true);
 
-        Move *best_move = best_choice.second;
+        myMove = best_choice.second;
 
         // set board to the best board
-        board->doMove(best_move, my_side);
-        return best_move;
+        board->doMove(myMove, my_side);
 
     }
     else{
@@ -248,7 +253,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
             myMove->getX(), myMove->getY());
     }// closes else
 
-    duration = (std::clock() - start) / (double)CLOCKS_PER_SEC * MSEC;
-    fprintf(stderr, "Time to make move: %f milliseconds\n", duration);
+    duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+    fprintf(stderr, "Time to make move: %f seconds\n", duration);
     return myMove;
 }
