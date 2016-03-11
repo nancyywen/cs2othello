@@ -33,18 +33,18 @@ Player::~Player() {
 
 }
 
-/* Compute the valid moves for player on the entire board
+/* Compute the valid moves for player on a given board
    Returns a vector of pointers to valid Moves */
-std::vector<Move*> Player::findValid(Side side){
+std::vector<Move*> Player::findValid(Side side, Board *bd){
     std::vector<Move*> valid_moves;
     Move *curr_move;
-    if (board->hasMoves(side)){
+    if (bd->hasMoves(side)){
         // go through the entire board to check if each 
         // position is a potentially valid move
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 curr_move = new Move(i, j);
-                if(board->checkMove(curr_move, side)){
+                if(bd->checkMove(curr_move, side)){
                     valid_moves.push_back(curr_move);
                 }
             }
@@ -69,7 +69,7 @@ bool Player::isCorner(Move *m){
 /* Compute heuristic score for a given move by finding
  * the difference in the weighted sum between the two players
  */
-int Player::findScore(Move *move, Side side){
+int Player::heuristicScore(Move *move, Side side){
     int my_score = 0;
     int opp_score = 0;
     Board *b = board->copy();
@@ -89,6 +89,39 @@ int Player::findScore(Move *move, Side side){
     }
     return my_score - opp_score;
 }
+
+/*
+ * Compute score for a given board which is  the 
+ * different in the number of pieces that each player 
+ */
+int Player::boardScore(Side side, Board *b){
+    int my_score = 0;
+    int opp_score = 0;
+
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            if(b->occupied(i, j)){
+                if(b->get(side, i, j)){
+                    my_score += 1;
+                }
+                else{
+                    opp_score += 1;
+                }
+            }
+        }
+    }
+    return my_score - opp_score;
+}
+
+
+
+/* This struct represents a node on the minimax tree */
+struct Node { 
+    Board* board;
+    Move* branch;
+    int score;
+};
+
 
 /*
  * Compute the next move given the opponent's last move. Your AI is
@@ -113,14 +146,74 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     Move *myMove = NULL;
     if(testingMinimax){
-        std::cerr << "Minimax not implemented yet" << std::endl;
+        std::cerr << "Testing minimax" << std::endl;
+        // Process opponent's move (doMove handles NULL moves)
+        board->doMove(opponentsMove, opp_side); 
+
+        // Build the minimax tree
+
+        // Layer 1:
+        // Children of root node created for possibles moves for my_side
+        std::vector<Move*> valid_moves = findValid(my_side, board);
+        std::vector<Move*>::iterator i;
+        std::vector<Node> tree1; // nodes in first layer of tree
+        for(i = valid_moves.begin(); i != valid_moves.end(); i++){
+            std::cerr << "Layer 1" << std::endl;
+            Node n1;
+            n1.branch = *i;
+            Board *b1 = board->copy();
+            b1->doMove(*i, my_side);
+            n1.board = b1;
+            tree1.push_back(n1);
+        }
+
+        // Layer 2: possible moves for opp_side
+        std::vector<Node>::iterator j;
+        std::vector<Node> tree2; // nodes in second layer of tree
+        
+        for (j = tree1.begin(); j != tree1.end(); j++){
+            int min_score = std::numeric_limits<int>::max(); 
+            Node curr_node = *j;
+            Board *curr_board = curr_node.board;
+            valid_moves = findValid(my_side, curr_board);
+            for(i = valid_moves.begin(); i != valid_moves.end(); i++){
+                std::cerr << "Layer 2" << std::endl;
+                Node n2;
+                n2.branch = *i;
+                Board *b2 = curr_board->copy();
+                b2->doMove(*i, opp_side);
+                n2.score = boardScore(my_side, b2);
+                if(n2.score < min_score){
+                    min_score = n2.score;
+                }
+                n2.board = b2;
+                tree2.push_back(n2);
+            }
+            curr_node.score = min_score;
+        }
+
+        int max_score = std::numeric_limits<int>::min(); 
+        Move* best_move;
+        for (j = tree1.begin(); j != tree1.end(); j++){
+            std::cerr << "Choosing minimax" << std::endl;
+            Node curr_node = *j;
+            if(curr_node.score > max_score){
+                max_score = curr_node.score;
+                best_move = curr_node.branch;
+            }
+        }
+
+        // set board to the best board
+        board->doMove(best_move, my_side);
+        return best_move;
+
     }
     else{
         // Process opponent's move (doMove handles NULL moves)
         board->doMove(opponentsMove, opp_side);
 
         // Calculate my valid moves
-        std::vector<Move*> valid_moves = findValid(my_side);
+        std::vector<Move*> valid_moves = findValid(my_side, board);
 
         if(!valid_moves.empty() && dumbPlaying){ // Randomly choose a valid move to play
             int index = rand() % valid_moves.size();
@@ -135,7 +228,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
             int curr_score;
             for(i = valid_moves.begin(); i != valid_moves.end(); i++){
                 curr = *i;
-                curr_score = findScore(curr, my_side);
+                curr_score = heuristicScore(curr, my_side);
                 if(curr_score > best_score){
                     best_score = curr_score;
                     myMove = curr;

@@ -23,16 +23,17 @@ const int heuristic[8][8] = { {4, -3, 2, 2, 2, 2, -3, 4},
                     {2, -1, 1, 0, 0, 1, -1, 2}, 
                     {-3, -4, -1, -1, -1, -1, -4, -3},
                     {4, -3, 2, 2, 2, 2, -3, 4}}; 
-                    
+
 class Player {
 
 public:
     Player(Side side);
     ~Player();
     
-    std::vector<Move*> findValid(Side side);
+    std::vector<Move*> findValid(Side side, Board *bd);
     bool isCorner(Move *m);
-    int findScore(Move *move, Side side);
+    int heuristicScore(Move *move, Side side);
+    int boardScore(Side side, Board *b);
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context
